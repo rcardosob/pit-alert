@@ -2,3 +2,8 @@ __pycache__/
 *.pyc
 .venv/
 data/cache/
+
+# Carpetas de compilación
+dist/
+build/
+*.spec

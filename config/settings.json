@@ -20,5 +20,5 @@
   "auto_close_at_zero": true,
   "popup_width": 520,
   "popup_height": 300,
-  "debug_mode": true
+  "debug_mode": false
 }
