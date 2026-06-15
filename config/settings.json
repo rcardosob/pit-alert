@@ -1,0 +1,24 @@
+{
+  "timezone": "America/Mexico_City",
+  "active_start": "07:00",
+  "active_end": "13:00",
+  "alert_minutes_before": 3,
+  "currencies": [
+    "ALL",
+    "USD",
+    "EUR",
+    "CAD",
+    "CNY",
+    "GBP",
+    "JPY"
+  ],
+  "impacts": [
+    "High",
+    "Medium"
+  ],
+  "sound_enabled": true,
+  "auto_close_at_zero": true,
+  "popup_width": 520,
+  "popup_height": 300,
+  "debug_mode": true
+}
