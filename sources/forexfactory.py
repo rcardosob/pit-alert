@@ -3,20 +3,15 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from datetime import datetime
-from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import requests
 
 from core.event_model import EconomicEvent
+from core.paths import get_cache_path, initialize_user_data
 
 
 FOREX_FACTORY_URL = "https://nfs.faireconomy.media/ff_calendar_thisweek.json"
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-CACHE_DIR = BASE_DIR / "data" / "cache"
-CACHE_PATH = CACHE_DIR / "forexfactory_thisweek.json"
-
 
 class ForexFactoryError(Exception):
     pass
@@ -132,14 +127,15 @@ def _fetch_from_web() -> list[dict]:
 
 
 def _save_cache(raw_events: list[dict], local_tz: ZoneInfo) -> None:
-    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    initialize_user_data()
+    cache_path = get_cache_path()
 
     payload = {
         "cached_at": datetime.now(tz=local_tz).isoformat(),
         "events": raw_events,
     }
 
-    with CACHE_PATH.open("w", encoding="utf-8") as file:
+    with cache_path.open("w", encoding="utf-8") as file:
         json.dump(payload, file, indent=2, ensure_ascii=False)
 
 
@@ -168,11 +164,14 @@ def _load_cache_if_valid(local_tz: ZoneInfo) -> dict | None:
 
 
 def _load_any_cache() -> dict | None:
-    if not CACHE_PATH.exists():
+    initialize_user_data()
+    cache_path = get_cache_path()
+
+    if not cache_path.exists():
         return None
 
     try:
-        with CACHE_PATH.open("r", encoding="utf-8") as file:
+        with cache_path.open("r", encoding="utf-8") as file:
             payload = json.load(file)
 
         if not isinstance(payload, dict):

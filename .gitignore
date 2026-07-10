@@ -7,3 +7,4 @@ data/cache/
 dist/
 build/
 *.spec
+installer/output/

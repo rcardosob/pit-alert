@@ -1,12 +1,9 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 from typing import Any
 
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-CONFIG_PATH = BASE_DIR / "config" / "settings.json"
+from core.paths import get_settings_path, initialize_user_data
 
 
 DEFAULT_SETTINGS: dict[str, Any] = {
@@ -25,14 +22,15 @@ DEFAULT_SETTINGS: dict[str, Any] = {
 
 
 def load_settings() -> dict[str, Any]:
-    CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    initialize_user_data()
+    config_path = get_settings_path()
 
-    if not CONFIG_PATH.exists():
+    if not config_path.exists():
         save_settings(DEFAULT_SETTINGS)
         return DEFAULT_SETTINGS.copy()
 
     try:
-        with CONFIG_PATH.open("r", encoding="utf-8") as file:
+        with config_path.open("r", encoding="utf-8") as file:
             loaded = json.load(file)
 
         settings = DEFAULT_SETTINGS.copy()
@@ -45,7 +43,8 @@ def load_settings() -> dict[str, Any]:
 
 
 def save_settings(settings: dict[str, Any]) -> None:
-    CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    initialize_user_data()
+    config_path = get_settings_path()
 
-    with CONFIG_PATH.open("w", encoding="utf-8") as file:
+    with config_path.open("w", encoding="utf-8") as file:
         json.dump(settings, file, indent=2, ensure_ascii=False)

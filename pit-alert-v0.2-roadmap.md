@@ -50,12 +50,11 @@ Escritorio
 4. Alertas ON por default al iniciar Windows
 5. Single instance
 6. Logs avanzados
-7. Migración a AppData
 8. Firma digital
 9. Auto-update
 ```
 
-La versión 0.2 debe ser una mejora de distribución, no una modificación funcional profunda.
+La versión 0.2 debe ser una mejora de distribución, con una migración acotada de configuración y caché a `LocalAppData` para permitir uso profesional por cuenta de Windows.
 
 ---
 
@@ -71,6 +70,12 @@ El usuario ejecuta el instalador y PIT ALERT queda instalado en:
 
 ```text
 C:\Program Files\PIT ALERT\
+```
+
+Los datos personales de cada usuario se guardarán en:
+
+```text
+%LOCALAPPDATA%\PIT ALERT\
 ```
 
 Después podrá abrirlo desde:

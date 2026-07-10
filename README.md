@@ -1,4 +1,4 @@
-# pit-alert
+# PIT ALERT
 Scheduled News Alert System for Trading Pause Management.
 
 # About
@@ -44,7 +44,20 @@ PIT ALERT does not provide trading advice, trade signals, investment recommendat
 
 The app only displays scheduled economic events and alerts the user before those events. Trading decisions remain the sole responsibility of the user.
 
-## How to Run the Portable Version
+## Install on Windows
+
+Download and run `PIT_ALERT_Setup_0.2.0.exe`.
+
+1. Accept the Windows administrator prompt.
+2. Keep the default destination: `C:\Program Files\PIT ALERT\`.
+3. Optionally select the Desktop shortcut.
+4. Open the app from `Start Menu -> PIT ALERT`.
+
+To remove it, open `Windows Settings -> Apps -> Installed apps -> PIT ALERT -> Uninstall`.
+
+The uninstaller removes the application and shortcuts. Your personal settings and local calendar cache remain in `%LOCALAPPDATA%\PIT ALERT` so a reinstall keeps your preferences. Delete that folder manually only if you want a complete reset.
+
+## Portable Version
 
 If you received the portable version:
 
@@ -85,13 +98,21 @@ From there, the user can configure:
 * Currencies
 * Impact levels
 
-## Default Configuration
+## User Data and Default Configuration
 
-The default configuration is stored in:
+The bundled default configuration is stored in:
 
 ```text
 config/settings.json
 ```
+
+On first run, PIT ALERT creates a personal copy at:
+
+```text
+%LOCALAPPDATA%\PIT ALERT\settings.json
+```
+
+Changes made through `Configuración` are saved there. This works for both the portable and installed versions and does not require write access to the application folder.
 
 Example:
 
@@ -167,10 +188,10 @@ Debug mode should remain disabled for normal user testing.
 
 PIT ALERT uses a local cache to avoid repeatedly requesting the calendar from ForexFactory.
 
-Cache folder:
+Per-user cache folder:
 
 ```text
-data/cache/
+%LOCALAPPDATA%\PIT ALERT\data\cache\
 ```
 
 This reduces the risk of receiving temporary web errors such as:
@@ -202,7 +223,7 @@ Recommended steps:
 
 ### The alert sound does not play
 
-Check that the sound file exists:
+Check that the sound file exists in the application folder:
 
 ```text
 assets/pit_stop.wav
@@ -216,7 +237,7 @@ Also verify that sound is enabled in settings:
 
 ### The app does not open
 
-Make sure you are running the full portable folder, not only the `.exe`.
+For the installed version, open PIT ALERT from the Start Menu. For the portable version, make sure you are running the full folder, not only the `.exe`.
 
 Do not separate:
 
@@ -271,26 +292,10 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
-Clean previous builds:
+Build with the checked-in PyInstaller configuration:
 
 ```powershell
-Remove-Item -Recurse -Force build -ErrorAction SilentlyContinue
-Remove-Item -Recurse -Force dist -ErrorAction SilentlyContinue
-Remove-Item -Force PIT_ALERT.spec -ErrorAction SilentlyContinue
-```
-
-Build with PyInstaller:
-
-```powershell
-pyinstaller `
-  --name PIT_ALERT `
-  --onedir `
-  --windowed `
-  --collect-all PySide6 `
-  --add-data "assets;assets" `
-  --add-data "config;config" `
-  --add-data "data;data" `
-  app.py
+pyinstaller --clean --noconfirm PIT_ALERT.spec
 ```
 
 The portable build will be created in:
@@ -299,7 +304,19 @@ The portable build will be created in:
 dist/PIT_ALERT/
 ```
 
-To distribute the app, compress and share the full folder:
+To create the Windows installer, install Inno Setup and compile:
+
+```powershell
+& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\PIT_ALERT.iss
+```
+
+The distribution artifact will be created at:
+
+```text
+installer/output/PIT_ALERT_Setup_0.2.0.exe
+```
+
+For a portable distribution, compress and share the full folder:
 
 ```text
 dist/PIT_ALERT/
@@ -336,7 +353,6 @@ pit-alert/
 * ForexFactory is the only data source.
 * No automatic background startup with Windows yet.
 * No system tray integration yet.
-* No installer yet.
 * No digital signature yet.
 * No automatic update mechanism yet.
 * No centralized logging or telemetry.
@@ -344,23 +360,11 @@ pit-alert/
 
 ## Suggested Roadmap
 
-### Version 0.2
-
-* System tray mode
-* Minimize to tray
-* Right-click menu:
-
-  * Open PIT ALERT
-  * Alertas ON/OFF
-  * Exit
-* App icon
-* Window icon
-* Cleaner production UI
-
 ### Version 0.3
 
 * Windows startup option
-* Installer
+* System tray mode
+* Minimize to tray
 * Better logging
 * Export logs for troubleshooting
 * More robust cache management
@@ -377,7 +381,7 @@ pit-alert/
 Current version:
 
 ```text
-0.1.0 MVP
+0.2.0
 ```
 
 ## License / Internal Use
