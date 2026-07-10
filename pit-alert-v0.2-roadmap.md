@@ -56,6 +56,8 @@ Escritorio
 
 La versión 0.2 debe ser una mejora de distribución, con una migración acotada de configuración y caché a `LocalAppData` para permitir uso profesional por cuenta de Windows.
 
+La distribución pública usará la `PIT ALERT Community License 1.0`: permite uso, mejoras y distribución gratuita con atribución, pero prohíbe reventa, sublicencia comercial y servicios de pago basados sustancialmente en la app.
+
 ---
 
 ## Resultado esperado

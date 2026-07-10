@@ -384,8 +384,14 @@ Current version:
 0.2.0
 ```
 
-## License / Internal Use
+## License and Community Use
 
-This MVP is intended for internal testing and user feedback.
+PIT ALERT is source-available under the `PIT ALERT Community License 1.0`.
 
-Before broader distribution, review licensing, data-source usage terms, code signing, and operational risk controls.
+You may download, use, modify, and share PIT ALERT and derivative works for free. You must retain the copyright and license notices, identify material changes, and not imply that a modified version is official.
+
+You may not sell, rent, sublicense, bundle into a paid product, or offer paid access, hosting, installation, support, or services substantially based on PIT ALERT or a derivative work. Commercial distribution and services require written permission from Mithril Mountain.
+
+The PIT ALERT name and logo are not licensed for use by forks or modified versions. This is not an OSI-approved open source license.
+
+Before broader distribution, review the data-source terms, code-signing requirements, and applicable legal obligations.

@@ -17,6 +17,7 @@ ArchitecturesInstallIn64BitMode=x64compatible
 OutputDir=output
 OutputBaseFilename=PIT_ALERT_Setup_0.2.0
 SetupIconFile=..\assets\icons\pit_alert.ico
+LicenseFile=..\LICENSE
 UninstallDisplayIcon={app}\{#MyAppExeName}
 Compression=lzma
 SolidCompression=yes
