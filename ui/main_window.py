@@ -1,12 +1,13 @@
-from __future__ import annotations
-
+import sys
+from pathlib import Path
 from datetime import datetime, timedelta
 from functools import partial
 from zoneinfo import ZoneInfo
 
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QFont
+from PySide6.QtGui import QFont, QIcon, QAction
 from PySide6.QtWidgets import (
+    QApplication,
     QMainWindow,
     QWidget,
     QVBoxLayout,
@@ -16,6 +17,8 @@ from PySide6.QtWidgets import (
     QTableWidget,
     QTableWidgetItem,
     QMessageBox,
+    QSystemTrayIcon,
+    QMenu,
 )
 
 from core.event_model import EconomicEvent
@@ -26,7 +29,7 @@ from ui.settings_window import SettingsWindow
 
 
 class MainWindow(QMainWindow):
-    def __init__(self) -> None:
+    def __init__(self, icon_path: Path | str | None = None) -> None:
         super().__init__()
 
         self.settings = load_settings()
@@ -37,6 +40,7 @@ class MainWindow(QMainWindow):
 
         self.alerts_enabled = True
         self.is_closing = False
+        self.has_shown_tray_message = False
         self.last_calendar_status = "Calendario no cargado."
 
         self.setWindowTitle("PIT ALERT")
@@ -45,6 +49,11 @@ class MainWindow(QMainWindow):
         self._build_ui()
         self._apply_styles()
         self._update_alerts_button_style()
+        self._setup_tray_icon(icon_path)
+
+        self.tooltip_timer = QTimer(self)
+        self.tooltip_timer.timeout.connect(self._update_tray_tooltip)
+        self.tooltip_timer.start(60000)
 
         self.load_forexfactory_calendar(force_refresh=False)
 
@@ -104,7 +113,6 @@ class MainWindow(QMainWindow):
         root.addWidget(header)
         root.addWidget(subtitle)
         root.addLayout(button_row)
-        root.addWidget(self.status_label)
         root.addWidget(self.table)
 
         self.setCentralWidget(central)
@@ -203,9 +211,15 @@ class MainWindow(QMainWindow):
         alerts_state = "ON" if self.alerts_enabled else "OFF"
         self.status_label.setText(f"{self.last_calendar_status} | Alertas: {alerts_state}")
 
-    def toggle_alerts(self) -> None:
-        self.alerts_enabled = not self.alerts_enabled
+    def toggle_alerts(self, enabled: bool | None = None) -> None:
+        if enabled is None:
+            self.alerts_enabled = not self.alerts_enabled
+        else:
+            self.alerts_enabled = enabled
+
         self._update_alerts_button_style()
+        self._update_tray_menu_state()
+        self._update_tray_tooltip()
 
         if self.alerts_enabled:
             self._schedule_alerts()
@@ -351,6 +365,8 @@ class MainWindow(QMainWindow):
                 self.alert_timers[event_key] = timer
                 timer.start(delay_ms)
 
+        self._update_tray_tooltip()
+
     def _handle_alert_timer(self, event_key: str, event: EconomicEvent) -> None:
         timer = self.alert_timers.pop(event_key, None)
 
@@ -432,8 +448,120 @@ class MainWindow(QMainWindow):
     def _event_key(event: EconomicEvent) -> str:
         return f"{event.event_time.isoformat()}|{event.currency}|{event.title}"
 
-    def closeEvent(self, event) -> None:
+    def _setup_tray_icon(self, icon_path: Path | str | None = None) -> None:
+        if icon_path is None:
+            base_path = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent))
+            icon_path = base_path / "assets" / "icons" / "pit_alert2.ico"
+
+        icon_file = Path(icon_path)
+        if not icon_file.exists():
+            icon_file = Path(icon_path).with_suffix(".png")
+
+        if icon_file.exists():
+            self.tray_icon_obj = QIcon(str(icon_file))
+        else:
+            self.tray_icon_obj = self.windowIcon() if not self.windowIcon().isNull() else QIcon()
+
+        self.tray_icon = QSystemTrayIcon(self.tray_icon_obj, self)
+        self._update_tray_tooltip()
+
+        self.tray_menu = QMenu(self)
+
+        self.action_abrir = QAction("Abrir PIT ALERT", self)
+        self.action_abrir.triggered.connect(self.restore_from_tray)
+
+        self.action_alertas = QAction("Alertas ON/OFF", self)
+        self.action_alertas.setCheckable(True)
+        self.action_alertas.setChecked(self.alerts_enabled)
+        self.action_alertas.toggled.connect(self.on_tray_alertas_toggled)
+
+        self.action_cerrar = QAction("Cerrar definitivamente", self)
+        self.action_cerrar.triggered.connect(self.quit_app)
+
+        self.tray_menu.addAction(self.action_abrir)
+        self.tray_menu.addAction(self.action_alertas)
+        self.tray_menu.addSeparator()
+        self.tray_menu.addAction(self.action_cerrar)
+
+        self.tray_icon.setContextMenu(self.tray_menu)
+        self.tray_icon.activated.connect(self.on_tray_icon_activated)
+
+        if QSystemTrayIcon.isSystemTrayAvailable():
+            self.tray_icon.show()
+
+    def on_tray_alertas_toggled(self, checked: bool) -> None:
+        if checked != self.alerts_enabled:
+            self.toggle_alerts(checked)
+
+    def _update_tray_menu_state(self) -> None:
+        if hasattr(self, "action_alertas"):
+            self.action_alertas.blockSignals(True)
+            self.action_alertas.setChecked(self.alerts_enabled)
+            self.action_alertas.blockSignals(False)
+
+    def _update_tray_tooltip(self) -> None:
+        if not hasattr(self, "tray_icon"):
+            return
+
+        if not self.alerts_enabled:
+            self.tray_icon.setToolTip("🔴 PIT ALERT: Alertas PAUSADAS")
+            return
+
+        next_event = None
+        if self.events:
+            now = datetime.now(tz=self.events[0].event_time.tzinfo)
+            future_events = [e for e in self.events if e.event_time > now]
+            if future_events:
+                next_event = min(future_events, key=lambda e: e.event_time)
+
+        if next_event:
+            now = datetime.now(tz=next_event.event_time.tzinfo)
+            mins_left = max(0, int((next_event.event_time - now).total_seconds() // 60))
+            tooltip = (
+                f"🟢 PIT ALERT: Alertas ACTIVAS\n"
+                f"Próximo: {next_event.currency} - {next_event.title} (en {mins_left} min)"
+            )
+        else:
+            tooltip = "🟢 PIT ALERT: Alertas ACTIVAS\nSin eventos pendientes hoy"
+
+        self.tray_icon.setToolTip(tooltip)
+
+    def on_tray_icon_activated(self, reason: QSystemTrayIcon.ActivationReason) -> None:
+        if reason in (QSystemTrayIcon.ActivationReason.Trigger, QSystemTrayIcon.ActivationReason.DoubleClick):
+            if self.isHidden() or self.isMinimized():
+                self.restore_from_tray()
+            else:
+                self.hide()
+
+    def restore_from_tray(self) -> None:
+        self.showNormal()
+        self.activateWindow()
+        self.raise_()
+
+    def quit_app(self) -> None:
         self.is_closing = True
         self._clear_alert_timers()
         self._close_active_popups()
-        event.accept()
+        if hasattr(self, "tray_icon"):
+            self.tray_icon.hide()
+        QApplication.instance().quit()
+
+    def closeEvent(self, event) -> None:
+        if self.is_closing:
+            self._clear_alert_timers()
+            self._close_active_popups()
+            if hasattr(self, "tray_icon"):
+                self.tray_icon.hide()
+            event.accept()
+        else:
+            event.ignore()
+            self.hide()
+            if not self.has_shown_tray_message and hasattr(self, "tray_icon"):
+                self.has_shown_tray_message = True
+                if self.tray_icon.supportsMessages():
+                    self.tray_icon.showMessage(
+                        "PIT ALERT",
+                        "La aplicación sigue ejecutándose en segundo plano.",
+                        QSystemTrayIcon.MessageIcon.Information,
+                        3000,
+                    )

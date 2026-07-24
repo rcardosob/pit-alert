@@ -46,7 +46,7 @@ The app only displays scheduled economic events and alerts the user before those
 
 ## Install on Windows
 
-Download and run `PIT_ALERT_Setup_0.2.0.exe`.
+Download and run `PIT_ALERT_Setup_0.2.1.exe`.
 
 1. Accept the Windows administrator prompt.
 2. Keep the default destination: `C:\Program Files\PIT ALERT\`.

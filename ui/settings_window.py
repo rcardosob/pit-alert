@@ -72,6 +72,7 @@ class SettingsWindow(QDialog):
         self.alert_minutes_input.setSuffix(" min")
 
         self.sound_checkbox = QCheckBox("Sonido activado")
+        self.start_minimized_checkbox = QCheckBox("Iniciar minimizado en System Tray")
 
         general_group = QGroupBox("General")
         general_layout = QGridLayout(general_group)
@@ -79,7 +80,8 @@ class SettingsWindow(QDialog):
         general_layout.addWidget(self.timezone_input, 0, 1)
         general_layout.addWidget(QLabel("Alerta antes del evento"), 1, 0)
         general_layout.addWidget(self.alert_minutes_input, 1, 1)
-        general_layout.addWidget(self.sound_checkbox, 2, 0, 1, 2)
+        general_layout.addWidget(self.sound_checkbox, 2, 0)
+        general_layout.addWidget(self.start_minimized_checkbox, 2, 1)
 
         currencies_group = QGroupBox("Monedas")
         currencies_layout = QGridLayout(currencies_group)
@@ -197,6 +199,10 @@ class SettingsWindow(QDialog):
             bool(self.settings.get("sound_enabled", True))
         )
 
+        self.start_minimized_checkbox.setChecked(
+            bool(self.settings.get("start_minimized", False))
+        )
+
         selected_currencies = {
             currency.upper()
             for currency in self.settings.get(
@@ -249,6 +255,7 @@ class SettingsWindow(QDialog):
         updated_settings["timezone"] = self.timezone_input.text().strip() or "America/Mexico_City"
         updated_settings["alert_minutes_before"] = int(self.alert_minutes_input.value())
         updated_settings["sound_enabled"] = self.sound_checkbox.isChecked()
+        updated_settings["start_minimized"] = self.start_minimized_checkbox.isChecked()
         updated_settings["currencies"] = selected_currencies
         updated_settings["impacts"] = selected_impacts
 
