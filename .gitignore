@@ -12,4 +12,8 @@ installer/output/
 # Landing page build & node modules
 landing/node_modules/
 landing/dist/
+landing/public/*.exe
+pit-alert-landing.tar.gz
+pit-alert-landing.zip
+
 
