@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PIT ALERT — Situational Awareness for Traders</title>
+    
+    <!-- Google Fonts: Space Grotesk + JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <!-- Fixed Cinematic Cockpit Background -->
+    <div class="cockpit-bg-overlay">
+      <div class="cockpit-image"></div>
+      <div class="cockpit-dark-filter"></div>
+    </div>
+
+    <!-- Persistent Header -->
+    <header class="header">
+      <div class="header-brand">PIT ALERT</div>
+      <div class="header-status">
+        <span class="status-indicator"></span>
+        <span class="status-text">PIT WALL / ACTIVE</span>
+      </div>
+    </header>
+
+    <!-- Professional Brand Copyright Badge (Replaces debug Scene Counter) -->
+    <div class="scene-counter">© 2026 PIT ALERT BY MITHRIL MOUNTAIN®</div>
+
+    <!-- Scroll Container & Scenes -->
+    <main id="scroll-wrapper">
+      
+      <!-- SCENE 01: THE TRACK -->
+      <section class="scene" id="scene-01">
+        <div class="scene-content flex-center">
+          <h1 class="headline-monumental hero-part-1">
+            Sometimes the best trade
+          </h1>
+          <h1 class="headline-monumental hero-part-2 text-gradient" id="hero-part-2">
+            is leaving the track.
+          </h1>
+        </div>
+      </section>
+
+      <!-- SCENE 02: THE DRIVER -->
+      <section class="scene" id="scene-02">
+        <div class="scene-content">
+          <h2 class="headline-large">Your eyes belong on the market.</h2>
+          <p class="subtitle-muted">Not on the calendar news of the moment.</p>
+          
+          <!-- Telemetry Stream Container -->
+          <div class="telemetry-box" id="telemetry-box">
+            <div class="telemetry-row"><span>SYS.CLOCK</span><span id="tel-clock">14:29:58.002</span></div>
+            <div class="telemetry-row"><span>FEED.LATENCY</span><span>0.14 ms</span></div>
+            <div class="telemetry-row"><span>MONITOR.STATUS</span><span class="text-amber">TRACKING</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCENE 03: SOMETHING IS COMING -->
+      <section class="scene" id="scene-03">
+        <div class="scene-content flex-center">
+          <div class="event-card">
+            <div class="event-badge">[ HIGH IMPACT EVENT ]</div>
+            <h3 class="event-title">US CPI</h3>
+            <div class="countdown-display" id="countdown">03:00</div>
+            <p class="micro-copy">PIT ALERT is watching.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCENE 04: LEAVE THE TRACK (PIT ALERT CLIMAX) -->
+      <section class="scene" id="scene-04">
+        <div class="scene-content flex-center">
+          <div class="climax-container">
+            <h1 class="headline-pit-alert" id="pit-text">PIT ALERT</h1>
+            
+            <div class="manifesto-spacious">
+              <p class="manifesto-huge">No predictions.</p>
+              <p class="manifesto-huge">No signals.</p>
+              <p class="manifesto-huge">No trading decisions.</p>
+              <p class="manifesto-huge-highlight">Just a warning before volatility arrives.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCENE 05: THE PRODUCT -->
+      <section class="scene" id="scene-05">
+        <div class="scene-content flex-center">
+          <div class="product-stage" id="product-stage">
+            
+            <!-- Faithful Replica of PIT ALERT PySide6 Real UI -->
+            <div class="app-window">
+              <div class="app-titlebar">
+                <div class="app-title">PIT ALERT</div>
+                <div class="app-controls">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+              <div class="app-body">
+                <div class="app-header-row">
+                  <div class="app-brand-group">
+                    <h3 class="app-h1">PIT ALERT</h3>
+                    <p class="app-sub">Economic news alert system for traders</p>
+                  </div>
+                </div>
+                
+                <div class="app-actions-row">
+                  <button class="app-btn btn-active">Alerts ON</button>
+                  <button class="app-btn">Refresh Calendar</button>
+                  <button class="app-btn">Settings</button>
+                </div>
+                
+                <div class="app-table-wrapper">
+                  <table class="app-table">
+                    <thead>
+                      <tr>
+                        <th>Local Time</th>
+                        <th>Currency</th>
+                        <th>Impact</th>
+                        <th>Event</th>
+                        <th>Alert</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr class="row-highlight">
+                        <td>14:30</td>
+                        <td><span class="currency-tag">USD</span></td>
+                        <td><span class="impact-tag impact-high">HIGH</span></td>
+                        <td class="event-name">Core CPI (MoM)</td>
+                        <td><span class="alert-status status-armed">IN 3 MIN</span></td>
+                      </tr>
+                      <tr>
+                        <td>15:00</td>
+                        <td><span class="currency-tag">USD</span></td>
+                        <td><span class="impact-tag impact-high">HIGH</span></td>
+                        <td class="event-name">Existing Home Sales</td>
+                        <td><span class="alert-status">Scheduled</span></td>
+                      </tr>
+                      <tr>
+                        <td>16:30</td>
+                        <td><span class="currency-tag">EUR</span></td>
+                        <td><span class="impact-tag impact-med">MEDIUM</span></td>
+                        <td class="event-name">ECB President Lagarde Speaks</td>
+                        <td><span class="alert-status">Scheduled</span></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Hotspot Annotations -->
+            <div class="hotspot hotspot-1" id="hotspot-1">
+              <span class="hotspot-num">01</span>
+              <span class="hotspot-label">ECONOMIC CALENDAR FILTER</span>
+            </div>
+            <div class="hotspot hotspot-2" id="hotspot-2">
+              <span class="hotspot-num">02</span>
+              <span class="hotspot-label">CUSTOM ALERT ANTICIPATION</span>
+            </div>
+            <div class="hotspot hotspot-3" id="hotspot-3">
+              <span class="hotspot-num">03</span>
+              <span class="hotspot-label">AUDIBLE & VISUAL WARNING</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCENE 06: BACK TO RACING -->
+      <section class="scene" id="scene-06">
+        <div class="scene-content flex-center">
+          <div class="final-container">
+            <h2 class="headline-large headline-spacious-strategy">
+              <span>Stay focused on your strategy.</span>
+              <span class="text-muted text-second-line">We'll watch the track.</span>
+            </h2>
+            
+            <div class="cta-wrapper">
+              <a href="#" class="cta-button">
+                <span class="cta-main">DOWNLOAD PIT ALERT</span>
+                <span class="cta-sub">FOR WINDOWS — v0.2.1</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCENE 07: THE FUTURE -->
+      <section class="scene" id="scene-07">
+        <div class="scene-content flex-center">
+          <div class="future-container">
+            <div class="future-state current-state" id="state-today">
+              <span class="future-label">PRESENT</span>
+              <h2 class="future-title">Today, scheduled events.</h2>
+            </div>
+            <div class="future-divider"></div>
+            <div class="future-state next-state" id="state-next">
+              <span class="future-label text-amber">VISION</span>
+              <h2 class="future-title">Next, the unexpected.</h2>
+              <div class="future-tags">
+                <span class="tag-spec">[ BREAKING NEWS ]</span>
+                <span class="tag-spec">[ PUBLICATIONS ]</span>
+                <span class="tag-spec">[ MARKET EVENTS ]</span>
+              </div>
+            </div>
+
+            <footer class="footer-lockup" style="margin-top: 60px;">
+              <p>© 2026 MITHRIL MOUNTAIN® — All Rights Reserved</p>
+            </footer>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

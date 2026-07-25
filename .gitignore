@@ -3,8 +3,13 @@ __pycache__/
 .venv/
 data/cache/
 
-# Carpetas de compilación
+# Compilaciones app
 dist/
 build/
 *.spec
 installer/output/
+
+# Landing page build & node modules
+landing/node_modules/
+landing/dist/
+

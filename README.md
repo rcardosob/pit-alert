@@ -31,8 +31,24 @@ PIT ALERT acts as a behavioral safeguard: it creates a clear interruption before
 * Alert ON/OFF control
 * Visual configuration window
 * Debug mode for internal testing
+* Interactive cinematic Web Landing Page (`/landing`)
 
-## Data Source
+## Design & Creative Documentation
+
+All creative briefs, visual proposal architecture, and storyboard documents are located in:
+* `docs/design/PIT_ALERT_LANDING_CREATIVE_BRIEF.md`
+* `docs/design/PIT_ALERT_PROPOSAL.md`
+* `docs/design/PIT_ALERT_STORYBOARD.md`
+
+## Landing Page Development
+
+The interactive web campaign is located in `landing/` built with Vite + GSAP:
+```bash
+cd landing
+npm install
+npx vite --port 3000
+```
+
 
 PIT ALERT currently uses ForexFactory as its only economic calendar source.
 
