@@ -4,8 +4,9 @@ from datetime import datetime, timedelta
 from functools import partial
 from zoneinfo import ZoneInfo
 
-from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QFont, QIcon, QAction
+from PySide6.QtCore import Qt, QTimer, QUrl
+from PySide6.QtGui import QFont, QIcon, QAction, QColor
+from PySide6.QtMultimedia import QSoundEffect
 from PySide6.QtWidgets import (
     QApplication,
     QMainWindow,
@@ -37,6 +38,9 @@ class MainWindow(QMainWindow):
         self.alerted_events: set[str] = set()
         self.active_popups: list[AlertPopup] = []
         self.alert_timers: dict[str, QTimer] = {}
+        self.post_event_timers: dict[str, QTimer] = {}
+        self.played_post_event_sounds: set[str] = set()
+        self.active_sound_effects: list[QSoundEffect] = []
 
         self.alerts_enabled = True
         self.is_closing = False
@@ -54,6 +58,10 @@ class MainWindow(QMainWindow):
         self.tooltip_timer = QTimer(self)
         self.tooltip_timer.timeout.connect(self._update_tray_tooltip)
         self.tooltip_timer.start(60000)
+
+        # Sincronizar registro de Windows al iniciar
+        from core.settings import update_windows_autostart
+        update_windows_autostart(self.settings.get("disable_autostart", False))
 
         self.load_forexfactory_calendar(force_refresh=False)
 
@@ -92,8 +100,12 @@ class MainWindow(QMainWindow):
             self.fast_popup_button = QPushButton("Probar popup 10 seg")
             self.fast_popup_button.clicked.connect(self.show_fast_popup)
 
+            self.test_audio2_button = QPushButton("Probar Audio 2")
+            self.test_audio2_button.clicked.connect(self.play_test_audio2)
+
             button_row.addWidget(self.test_popup_button)
             button_row.addWidget(self.fast_popup_button)
+            button_row.addWidget(self.test_audio2_button)
 
         button_row.addStretch(1)
 
@@ -101,9 +113,9 @@ class MainWindow(QMainWindow):
         self.status_label.setWordWrap(True)
 
         self.table = QTableWidget()
-        self.table.setColumnCount(5)
+        self.table.setColumnCount(6)
         self.table.setHorizontalHeaderLabels(
-            ["Hora local", "Moneda", "Impacto", "Evento", "Alerta"]
+            ["Hora NY", "Hora local", "Moneda", "Impacto", "Evento", "Alerta"]
         )
         self.table.horizontalHeader().setStretchLastSection(True)
         self.table.verticalHeader().setVisible(False)
@@ -238,6 +250,7 @@ class MainWindow(QMainWindow):
         if dialog.exec() == SettingsWindow.DialogCode.Accepted:
             self.settings = load_settings()
             self.alerted_events.clear()
+            self.played_post_event_sounds.clear()
             self.load_forexfactory_calendar(force_refresh=False)
 
     def load_forexfactory_calendar(self, force_refresh: bool = False) -> None:
@@ -267,6 +280,7 @@ class MainWindow(QMainWindow):
 
         self.events = result.events
         self.alerted_events.clear()
+        self.played_post_event_sounds.clear()
         self._clear_alert_timers()
         self._render_events()
         self._schedule_alerts()
@@ -307,7 +321,9 @@ class MainWindow(QMainWindow):
         for row, event in enumerate(self.events):
             alert_time = event.event_time - timedelta(minutes=alert_minutes)
 
+            ny_time = event.event_time.astimezone(ZoneInfo("America/New_York"))
             values = [
+                ny_time.strftime("%H:%M:%S"),
                 event.event_time.strftime("%H:%M:%S"),
                 event.currency,
                 event.impact,
@@ -319,12 +335,52 @@ class MainWindow(QMainWindow):
                 item = QTableWidgetItem(value)
                 item.setTextAlignment(
                     Qt.AlignmentFlag.AlignCenter
-                    if col != 3
+                    if col != 4
                     else Qt.AlignmentFlag.AlignLeft
                 )
                 self.table.setItem(row, col, item)
 
+                if col == 3 and value in ("Medium", "High"):
+                    self.table.removeCellWidget(row, col)
+                    badge = self._create_impact_badge(value)
+                    self.table.setCellWidget(row, col, badge)
+
         self.table.resizeColumnsToContents()
+        self._update_row_colors()
+
+    def _create_impact_badge(self, impact: str) -> QWidget:
+        container = QWidget()
+        container.setStyleSheet("background-color: transparent;")
+
+        layout = QHBoxLayout(container)
+        layout.setContentsMargins(4, 2, 4, 2)
+        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        label = QLabel(impact)
+        label.setObjectName("impactLabel")
+        label.setFont(QFont("Arial", 9, QFont.Weight.Bold))
+
+        if impact == "Medium":
+            label.setStyleSheet("""
+                QLabel {
+                    background-color: #D4AF37; /* Amarillo/Dorado suave */
+                    color: #FFFFFF;
+                    border-radius: 4px;
+                    padding: 2px 8px;
+                }
+            """)
+        elif impact == "High":
+            label.setStyleSheet("""
+                QLabel {
+                    background-color: #B22222; /* Rojo/Carmesí suave */
+                    color: #FFFFFF;
+                    border-radius: 4px;
+                    padding: 2px 8px;
+                }
+            """)
+
+        layout.addWidget(label)
+        return container
 
     def _schedule_alerts(self) -> None:
         self._clear_alert_timers()
@@ -345,25 +401,32 @@ class MainWindow(QMainWindow):
         for event in self.events:
             event_key = self._event_key(event)
             alert_time = event.event_time - timedelta(minutes=alert_minutes)
+            post_time = event.event_time + timedelta(minutes=3)
 
-            if event_key in self.alerted_events:
-                continue
+            # Schedule standard alert
+            if event_key not in self.alerted_events:
+                if event.event_time > now:
+                    if alert_time <= now < event.event_time:
+                        self._show_alert(event)
+                    else:
+                        delay_ms = int((alert_time - now).total_seconds() * 1000)
+                        if delay_ms > 0:
+                            timer = QTimer(self)
+                            timer.setSingleShot(True)
+                            timer.timeout.connect(partial(self._handle_alert_timer, event_key, event))
+                            self.alert_timers[event_key] = timer
+                            timer.start(delay_ms)
 
-            if event.event_time <= now:
-                continue
-
-            if alert_time <= now < event.event_time:
-                self._show_alert(event)
-                continue
-
-            delay_ms = int((alert_time - now).total_seconds() * 1000)
-
-            if delay_ms > 0:
-                timer = QTimer(self)
-                timer.setSingleShot(True)
-                timer.timeout.connect(partial(self._handle_alert_timer, event_key, event))
-                self.alert_timers[event_key] = timer
-                timer.start(delay_ms)
+            # Schedule post-event sound
+            if event_key not in self.played_post_event_sounds:
+                if post_time > now:
+                    delay_post_ms = int((post_time - now).total_seconds() * 1000)
+                    if delay_post_ms > 0:
+                        timer_post = QTimer(self)
+                        timer_post.setSingleShot(True)
+                        timer_post.timeout.connect(partial(self._handle_post_event_timer, event_key, event))
+                        self.post_event_timers[event_key] = timer_post
+                        timer_post.start(delay_post_ms)
 
         self._update_tray_tooltip()
 
@@ -379,6 +442,49 @@ class MainWindow(QMainWindow):
 
         self._show_alert(event)
 
+    def _handle_post_event_timer(self, event_key: str, event: EconomicEvent) -> None:
+        timer = self.post_event_timers.pop(event_key, None)
+
+        if timer is not None:
+            timer.stop()
+            timer.deleteLater()
+
+        if self.is_closing:
+            return
+
+        self._play_post_event_sound(event_key)
+        self._update_row_colors()
+
+    def _play_post_event_sound(self, event_key: str) -> None:
+        if not self.settings.get("sound_enabled", True) or not self.alerts_enabled:
+            return
+
+        if event_key in self.played_post_event_sounds:
+            return
+
+        self.played_post_event_sounds.add(event_key)
+
+        base_path = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent))
+        sound_path = base_path / "assets" / "two_minutes__engine_fire_up_.wav"
+
+        if not sound_path.exists():
+            return
+
+        sound_effect = QSoundEffect(self)
+        sound_effect.setSource(QUrl.fromLocalFile(str(sound_path)))
+        sound_effect.setLoopCount(1)
+        sound_effect.setVolume(0.9)
+
+        def handle_status_changed():
+            if not sound_effect.isPlaying():
+                if sound_effect in self.active_sound_effects:
+                    self.active_sound_effects.remove(sound_effect)
+                sound_effect.deleteLater()
+
+        sound_effect.playingChanged.connect(handle_status_changed)
+        self.active_sound_effects.append(sound_effect)
+        sound_effect.play()
+
     def _clear_alert_timers(self) -> None:
         for timer in list(self.alert_timers.values()):
             if timer.isActive():
@@ -387,6 +493,14 @@ class MainWindow(QMainWindow):
             timer.deleteLater()
 
         self.alert_timers.clear()
+
+        for timer in list(self.post_event_timers.values()):
+            if timer.isActive():
+                timer.stop()
+
+            timer.deleteLater()
+
+        self.post_event_timers.clear()
 
     def _show_alert(self, event: EconomicEvent) -> None:
         if not self.alerts_enabled or self.is_closing:
@@ -412,27 +526,49 @@ class MainWindow(QMainWindow):
 
     def show_test_popup(self) -> None:
         tz = ZoneInfo(self.settings.get("timezone", "America/Mexico_City"))
-
+        event_time = datetime.now(tz=tz) + timedelta(minutes=3)
         event = EconomicEvent(
-            title="Core CPI m/m",
+            title="Core CPI m/m (Prueba)",
             currency="USD",
             impact="High",
-            event_time=datetime.now(tz=tz) + timedelta(minutes=3),
+            event_time=event_time,
         )
 
         self._show_alert(event)
+
+        # Programar Audio 2 para este evento de prueba a los 6 minutos (3 min después de la noticia)
+        event_key = self._event_key(event)
+        timer_post = QTimer(self)
+        timer_post.setSingleShot(True)
+        timer_post.timeout.connect(partial(self._handle_post_event_timer, event_key, event))
+        self.post_event_timers[event_key] = timer_post
+        timer_post.start(360000)
 
     def show_fast_popup(self) -> None:
         tz = ZoneInfo(self.settings.get("timezone", "America/Mexico_City"))
 
         event = EconomicEvent(
-            title="Fed Chair Powell Speaks",
+            title="Fed Chair Powell Speaks (Prueba)",
             currency="USD",
             impact="High",
             event_time=datetime.now(tz=tz) + timedelta(seconds=10),
         )
 
         self._show_alert(event)
+
+        # Programar Audio 2 para este evento rápido de prueba a los 20 segundos (10s después de la noticia)
+        event_key = self._event_key(event)
+        timer_post = QTimer(self)
+        timer_post.setSingleShot(True)
+        timer_post.timeout.connect(partial(self._handle_post_event_timer, event_key, event))
+        self.post_event_timers[event_key] = timer_post
+        timer_post.start(20000)
+
+    def play_test_audio2(self) -> None:
+        # Reproducir Audio 2 de forma inmediata e independiente
+        self._play_post_event_sound("test_audio2_manual_key")
+        # Forzar que la clave manual se borre después para permitir volver a probar el botón
+        self.played_post_event_sounds.discard("test_audio2_manual_key")
 
     def _remove_popup_reference(self, popup: AlertPopup, *args) -> None:
         if popup in self.active_popups:
@@ -525,6 +661,59 @@ class MainWindow(QMainWindow):
             tooltip = "🟢 PIT ALERT: Alertas ACTIVAS\nSin eventos pendientes hoy"
 
         self.tray_icon.setToolTip(tooltip)
+        self._update_row_colors()
+
+    def _update_row_colors(self) -> None:
+        if not self.events:
+            return
+
+        now = datetime.now(tz=self.events[0].event_time.tzinfo)
+        gray_color = QColor("#8C8C8C")
+        default_color = QColor("#F5F1E8")
+
+        for row, event in enumerate(self.events):
+            post_time = event.event_time + timedelta(minutes=3)
+            is_past = now >= post_time
+
+            for col in range(self.table.columnCount()):
+                item = self.table.item(row, col)
+                if item is not None:
+                    item.setForeground(gray_color if is_past else default_color)
+
+            # Actualizar el color del badge de impacto si existe en la columna 3
+            widget = self.table.cellWidget(row, 3)
+            if widget is not None:
+                label = widget.findChild(QLabel, "impactLabel")
+                if label is not None:
+                    impact = label.text()
+                    if is_past:
+                        label.setStyleSheet("""
+                            QLabel {
+                                background-color: #2A2A2A;
+                                color: #8C8C8C;
+                                border-radius: 4px;
+                                padding: 2px 8px;
+                            }
+                        """)
+                    else:
+                        if impact == "Medium":
+                            label.setStyleSheet("""
+                                QLabel {
+                                    background-color: #D4AF37;
+                                    color: #FFFFFF;
+                                    border-radius: 4px;
+                                    padding: 2px 8px;
+                                }
+                            """)
+                        elif impact == "High":
+                            label.setStyleSheet("""
+                                QLabel {
+                                    background-color: #B22222;
+                                    color: #FFFFFF;
+                                    border-radius: 4px;
+                                    padding: 2px 8px;
+                                }
+                            """)
 
     def on_tray_icon_activated(self, reason: QSystemTrayIcon.ActivationReason) -> None:
         if reason in (QSystemTrayIcon.ActivationReason.Trigger, QSystemTrayIcon.ActivationReason.DoubleClick):

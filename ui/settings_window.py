@@ -73,6 +73,7 @@ class SettingsWindow(QDialog):
 
         self.sound_checkbox = QCheckBox("Sonido activado")
         self.start_minimized_checkbox = QCheckBox("Iniciar minimizado en System Tray")
+        self.disable_autostart_checkbox = QCheckBox("Deshabilitar el arranque automático con Windows")
 
         general_group = QGroupBox("General")
         general_layout = QGridLayout(general_group)
@@ -82,6 +83,7 @@ class SettingsWindow(QDialog):
         general_layout.addWidget(self.alert_minutes_input, 1, 1)
         general_layout.addWidget(self.sound_checkbox, 2, 0)
         general_layout.addWidget(self.start_minimized_checkbox, 2, 1)
+        general_layout.addWidget(self.disable_autostart_checkbox, 3, 0, 1, 2)
 
         currencies_group = QGroupBox("Monedas")
         currencies_layout = QGridLayout(currencies_group)
@@ -200,7 +202,11 @@ class SettingsWindow(QDialog):
         )
 
         self.start_minimized_checkbox.setChecked(
-            bool(self.settings.get("start_minimized", False))
+            bool(self.settings.get("start_minimized", True))
+        )
+
+        self.disable_autostart_checkbox.setChecked(
+            bool(self.settings.get("disable_autostart", False))
         )
 
         selected_currencies = {
@@ -256,10 +262,14 @@ class SettingsWindow(QDialog):
         updated_settings["alert_minutes_before"] = int(self.alert_minutes_input.value())
         updated_settings["sound_enabled"] = self.sound_checkbox.isChecked()
         updated_settings["start_minimized"] = self.start_minimized_checkbox.isChecked()
+        updated_settings["disable_autostart"] = self.disable_autostart_checkbox.isChecked()
         updated_settings["currencies"] = selected_currencies
         updated_settings["impacts"] = selected_impacts
 
         save_settings(updated_settings)
+
+        from core.settings import update_windows_autostart
+        update_windows_autostart(updated_settings["disable_autostart"])
 
         self.settings = updated_settings
         self.accept()

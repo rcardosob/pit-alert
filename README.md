@@ -3,12 +3,12 @@
 > **Situational Awareness for Traders.**  
 > *Sometimes the best trade is leaving the track.*
 
-[![Version](https://img.shields.io/badge/version-v0.2.1-C9A227.svg?style=flat-square)](https://github.com/rcardosob/pit-alert/releases)
+[![Version](https://img.shields.io/badge/version-v0.2.2-C9A227.svg?style=flat-square)](https://github.com/rcardosob/pit-alert/releases)
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-0078D4.svg?style=flat-square)](https://github.com/rcardosob/pit-alert/releases)
 [![Category](https://img.shields.io/badge/category-Trading%20%2F%20Risk%20Safeguard-27272A.svg?style=flat-square)](#about)
 [![License](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)](LICENSE)
 
-[🌐 **Official Interactive Campaign & Web**](https://fin.mithril.mx/pit-alert/) | [📥 **Download Desktop App (v0.2.1)**](https://fin.mithril.mx/pit-alert/PIT_ALERT_Setup_0.2.1.exe)
+[🌐 **Official Interactive Campaign & Web**](https://fin.mithril.mx/pit-alert/) | [📥 **Download Desktop App (v0.2.2)**](https://fin.mithril.mx/pit-alert/PIT_ALERT_Setup_0.2.2.exe)
 
 ---
 

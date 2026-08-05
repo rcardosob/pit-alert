@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.2 - 2026-08-05
+
+- Added "Hora NY" column in the main economic calendar table to track New York trading time.
+- Added post-event audio warning (`two_minutes__engine_fire_up_.wav`) playing exactly 3 minutes after each news event.
+- Added automatic visual gray-out effect for past news events and their badges.
+- Added native Windows startup auto-start registry integration, enabled by default with a setting to disable it.
+- Added Single Instance execution guard using local socket to prevent running multiple app instances.
+
 ## 0.2.1 - 2026-07-24
 
 - Replaced application icon with new transparent icon (`pit_alert2.ico`).

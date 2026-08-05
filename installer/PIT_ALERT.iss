@@ -1,5 +1,5 @@
 #define MyAppName "PIT ALERT"
-#define MyAppVersion "0.2.1"
+#define MyAppVersion "0.2.2"
 #define MyAppPublisher "Mithril Mountain"
 #define MyAppExeName "PIT_ALERT.exe"
 
@@ -15,7 +15,7 @@ PrivilegesRequired=admin
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 OutputDir=output
-OutputBaseFilename=PIT_ALERT_Setup_0.2.1
+OutputBaseFilename=PIT_ALERT_Setup_0.2.2
 SetupIconFile=..\assets\icons\pit_alert2.ico
 LicenseFile=..\LICENSE
 UninstallDisplayIcon={app}\{#MyAppExeName}
