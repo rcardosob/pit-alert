@@ -24,8 +24,8 @@ function initTelemetryClock() {
 }
 
 function initAudioTrigger() {
-  const pitAudio = new Audio('/pit_stop.wav');
-  const returnAudio = new Audio('/two_minutes__engine_fire_up_.wav');
+  const pitAudio = new Audio('./pit_stop.wav');
+  const returnAudio = new Audio('./two_minutes__engine_fire_up_.wav');
   
   let audioPlayedScene3 = false;
   let audioPlayedScene6 = false;
