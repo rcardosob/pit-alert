@@ -104,14 +104,33 @@ html, body {
   border: 1px solid var(--color-zinc);
   border-radius: 20px;
   backdrop-filter: blur(8px);
+  pointer-events: auto; /* Permitir interacción con el botón de status */
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.3s ease;
+}
+
+.header-status:hover {
+  background: rgba(25, 25, 25, 0.95);
+  border-color: var(--color-amber);
+}
+
+.header-status.active:hover {
+  border-color: #22C55E;
 }
 
 .status-indicator {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background-color: var(--color-amber);
-  box-shadow: 0 0 8px var(--color-amber);
+  background-color: var(--color-zinc); /* Gris apagado por defecto */
+  box-shadow: 0 0 8px var(--color-zinc);
+  transition: all 0.3s ease;
+}
+
+.header-status.active .status-indicator {
+  background-color: #22C55E; /* Verde brillante activo */
+  box-shadow: 0 0 10px #22C55E;
 }
 
 /* Scene Counter */
